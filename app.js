@@ -20,10 +20,11 @@ io.on('connection', socket => {
         //console.log('disconnected.');
         socket.broadcast.emit('user disconnected');
       });
-    socket.on("chat message", async data => {
+    socket.on("message sent", async data => {
       const message = new Chat({ pseudo: data.pseudo, message: data.message });
-      socket.broadcast.emit("chat message", { data: message });
       await message.save();
+      socket.broadcast.emit("received message", { data: message });
+      
     });
   
     socket.on('typing', data => {

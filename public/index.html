@@ -89,22 +89,16 @@
         const author = usernameInput.val();
         const message = messageInput.val();
         if (author.trim() === '' || message.trim() === '') return;
-        socket.emit('chat message', { pseudo: author, message: message });
+        socket.emit("message sent", { pseudo: author, message: message });
         messageInput.val('');
         messageInput.focus();
         messageT.append(`<li class="text-info"><em> ${author} : ${message} </em></li>`);
-        
 
       });
 
-
-      socket.on("chat message", message => {
-
+      socket.on("received message", message => {
         addMessage(message.data);
-       
       });
-
-
 
       socket.on('user connected',__ => {
         connection_list.append(`<li class="text-info"><em>someone has joined the chat.</em></li>`);
@@ -113,8 +107,6 @@
       socket.on('user disconnected', __ => {
         connection_list.append(`<li class="text-info"><em> somone  has left the chat.</em></li>`);
       });
-
-
       let typingTimer;
       messageInput.on('keyup', () => {
         
