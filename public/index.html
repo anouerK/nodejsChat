@@ -43,6 +43,9 @@
      document.getElementById('username').value = name;
   </script>
   <script>
+
+    //fetching  previous  messages from db  ( check implementation in  app.js )
+    //nejbdo fel messages el 9dom mel db
     fetch('/messages')
       .then(response => response.json())
       .then(data => {
@@ -96,28 +99,37 @@
 
       });
 
+      // listening to  received message event which will  be  triggered  from  app.js  ( line  31)
       socket.on("received message", message => {
         addMessage(message.data);
       });
 
+      // listening to  user connected event which will  be  triggered  from  app.js  ( line  19)
       socket.on('user connected',__ => {
         connection_list.append(`<li class="text-info"><em>someone has joined the chat.</em></li>`);
       });
 
+       // listening to  user disconnected event which will  be  triggered  from  app.js  ( line  24)
       socket.on('user disconnected', __ => {
         connection_list.append(`<li class="text-info"><em> somone  has left the chat.</em></li>`);
       });
       let typingTimer;
+
+
       messageInput.on('keyup', () => {
         
-        clearTimeout(typingTimer);
+        //you can ignore  the timeout thing not  important
+        clearTimeout(typingTimer); 
         if (messageInput.val()) {
           typingTimer = setTimeout(() => {
+            //trigering  typing event   (  read implementation in app.js line 35)
             socket.emit('typing', { author: usernameInput.val() });
           }, 10);
         }
       });
 
+      // listening to  typing  event which will  be  triggered  from  app.js  ( line  37) 
+      //ps : typing in line 126  and line 133  arent same  you can try renaming  126 event name  to something else  make sure to rename also typing in line 35 app.js
       socket.on('typing', data => {
         if(! document.getElementById(data.author))
         messageList.append(`<li  id = ${data.author} class="text-secondary"><em>${data.author} is typing...</em></li>`);
