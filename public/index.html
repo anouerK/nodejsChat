@@ -1,0 +1,133 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chat App</title>
+  <style>
+    #messages {
+      height: 400px;
+      overflow: auto;
+    }
+    #messages-container {
+        max-height: 300px;
+        overflow-y: scroll;
+      }
+  </style>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+
+<body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"
+    integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">Chat App</h1>
+    <ul id="users" class="list-unstyled" style="padding-left: 0; position: absolute; left: 0; top: 0;">Connections : </ul>
+
+    <div id="messages-container">
+      <ul id="messagestext" class="list-unstyled"></ul>
+    </div>
+   
+    <ul id="messages" class="list-unstyled"></ul>
+   
+    <form id="chat-form" class="form-inline mt-3">
+      <input type="text" id="username" class="form-control mr-2" placeholder="Username">
+      <input type="text" id="message" class="form-control mr-2" placeholder="Message">
+      <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+  <script>
+    fetch('/messages')
+      .then(response => response.json())
+      .then(data => {
+        const messagesContainer = document.getElementById('messages');
+        const messageT = $('#messagestext');
+
+        data.forEach(message => {
+
+          messageT.append(`<li class="text-info"><em>${message.pseudo} :  ${message.message} </em></li>`);
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  </script>
+  <script>
+    const usernameInput = $('#username');
+      const messageInput = $('#message');
+    
+    $(function () {
+     
+      // Connexion à Socket.io
+      const socket = io();
+
+      const messageT = $('#messagestext');
+      const messageList = $('#messages');
+      const chatForm = $('#chat-form');
+      const usernameInput = $('#username');
+      const messageInput = $('#message');
+      const connection_list = $('#users');
+
+     
+      function addMessage(message) {
+
+        messageT.append(`<li class="text-info"><em>${message.pseudo} ${message.message} </em></li>`);
+        let removemessage = document.getElementById(message.pseudo);
+        removemessage.remove(); // Remove the element
+
+      }
+
+
+      chatForm.submit(e => {
+        e.preventDefault();
+        const author = usernameInput.val();
+        const message = messageInput.val();
+        if (author.trim() === '' || message.trim() === '') return;
+        socket.emit('chat message', { pseudo: author, message: message });
+        messageInput.val('');
+        messageInput.focus();
+        messageT.append(`<li class="text-info"><em> ${author} : ${message} </em></li>`);
+        
+
+      });
+
+
+      socket.on("chat message", message => {
+
+        addMessage(message.data);
+       
+      });
+
+
+
+      socket.on('user connected',__ => {
+        connection_list.append(`<li class="text-info"><em>someone has joined the chat.</em></li>`);
+      });
+
+      socket.on('user disconnected', __ => {
+        connection_list.append(`<li class="text-info"><em> somone  has left the chat.</em></li>`);
+      });
+
+
+      let typingTimer;
+      messageInput.on('keyup', () => {
+        
+        clearTimeout(typingTimer);
+        if (messageInput.val()) {
+          typingTimer = setTimeout(() => {
+            socket.emit('typing', { author: usernameInput.val() });
+          }, 10);
+        }
+      });
+
+      socket.on('typing', data => {
+        if(! document.getElementById(data.author))
+        messageList.append(`<li  id = ${data.author} class="text-secondary"><em>${data.author} is typing...</em></li>`);
+      });
+    });
+  </script>
+</body>
+
+</html>
