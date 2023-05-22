@@ -33,11 +33,15 @@
     <ul id="messages" class="list-unstyled"></ul>
    
     <form id="chat-form" class="form-inline mt-3">
-      <input type="text" id="username" class="form-control mr-2" placeholder="Username">
+      <input  type="hidden" id="username" class="form-control mr-2" placeholder="Username">
       <input type="text" id="message" class="form-control mr-2" placeholder="Message">
       <button type="submit" class="btn btn-primary">Send</button>
     </form>
   </div>
+  <script>
+     const name= prompt('What is your name?')
+     document.getElementById('username').value = name;
+  </script>
   <script>
     fetch('/messages')
       .then(response => response.json())
